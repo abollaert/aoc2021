@@ -2,15 +2,15 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -54,17 +54,20 @@ public final class Day12 {
         }
     }
 
-    private static final int findPaths(final Graph graph,
-                                       final BiPredicate<Deque<String>, String> canVisit) {
-        final Deque<Deque<String>> candidates = new ArrayDeque<>();
-        final Deque<Deque<String>> paths = new ArrayDeque<>();
+    private static final int search(final Graph graph,
+                                    final BiPredicate<Collection<String>, String> canVisit) {
+        // Paths under construction.
+        final Deque<List<String>> fringe = new ArrayDeque<>();
 
-        candidates.push(new ArrayDeque<>(Collections.singletonList("start")));
+        // Actual paths.
+        final List<List<String>> paths = new ArrayList<>();
 
-        while (!candidates.isEmpty()) {
-            final Deque<String> visited = candidates.pop();
+        fringe.push(new ArrayList<>(Collections.singletonList("start")));
 
-            final String cave = visited.peek();
+        while (!fringe.isEmpty()) {
+            final List<String> visited = fringe.pop();
+
+            final String cave = visited.isEmpty() ? null : visited.get(visited.size() - 1);
 
             if (cave != null && cave.equals("end")) {
                 paths.add(visited);
@@ -73,10 +76,11 @@ public final class Day12 {
 
             for (final String adjacent : graph.getAdjacent(cave)) {
                 if (canVisit.test(visited, adjacent)) {
-                    final Deque<String> candidate = new ArrayDeque<>(visited);
+                    final List<String> newVisited = new ArrayList<>(visited);
 
-                    candidate.push(adjacent);
-                    candidates.push(candidate);
+                    newVisited.add(adjacent);
+
+                    fringe.push(newVisited);
                 }
             }
         }
@@ -84,11 +88,11 @@ public final class Day12 {
         return paths.size();
     }
 
-    private static final boolean canVisitPart1(final Deque<String> visited, final String cave) {
+    private static final boolean canVisitPart1(final Collection<String> visited, final String cave) {
         return !visited.contains(cave) || isBig(cave);
     }
 
-    private static final boolean canVisitPart2(final Deque<String> visited, final String cave) {
+    private static final boolean canVisitPart2(final Collection<String> visited, final String cave) {
         final Map<String, Long> numVisits = visited.stream()
                                                    .filter(Day12::isSmall)
                                                    .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
@@ -110,8 +114,8 @@ public final class Day12 {
     public static void main(String[] args) {
         final Graph g = readData();
 
-        System.out.println(findPaths(g, Day12::canVisitPart1));
-        System.out.println(findPaths(g, Day12::canVisitPart2));
+        System.out.println(search(g, Day12::canVisitPart1));
+        System.out.println(search(g, Day12::canVisitPart2));
     }
 
 
