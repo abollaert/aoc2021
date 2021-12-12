@@ -54,8 +54,8 @@ public final class Day12 {
         }
     }
 
-    private static final int search(final Graph graph,
-                                    final BiPredicate<Collection<String>, String> canVisit) {
+    private static final int dfs(final Graph graph,
+                                 final BiPredicate<Collection<String>, String> canVisit) {
         // Paths under construction.
         final Deque<List<String>> fringe = new ArrayDeque<>();
 
@@ -67,14 +67,14 @@ public final class Day12 {
         while (!fringe.isEmpty()) {
             final List<String> visited = fringe.pop();
 
-            final String cave = visited.isEmpty() ? null : visited.get(visited.size() - 1);
+            final String lastCave = visited.isEmpty() ? null : visited.get(visited.size() - 1);
 
-            if (cave != null && cave.equals("end")) {
+            if (lastCave != null && lastCave.equals("end")) {
                 paths.add(visited);
                 continue;
             }
 
-            for (final String adjacent : graph.getAdjacent(cave)) {
+            for (final String adjacent : graph.getAdjacent(lastCave)) {
                 if (canVisit.test(visited, adjacent)) {
                     final List<String> newVisited = new ArrayList<>(visited);
 
@@ -114,8 +114,8 @@ public final class Day12 {
     public static void main(String[] args) {
         final Graph g = readData();
 
-        System.out.println(search(g, Day12::canVisitPart1));
-        System.out.println(search(g, Day12::canVisitPart2));
+        System.out.println(dfs(g, Day12::canVisitPart1));
+        System.out.println(dfs(g, Day12::canVisitPart2));
     }
 
 
